@@ -6,11 +6,11 @@ import Layout, { GradientBackground } from '../components/Layout';
 import ArrowIcon from '../components/ArrowIcon';
 import { getGlobalData } from '../utils/global-data';
 import SEO from '../components/SEO';
-import { FlagValues } from '@vercel/flags/react';
-import { decrypt, encrypt } from '@vercel/flags';
-import { safeJsonStringify } from '@vercel/flags';
+import { FlagValues, safeJsonStringify } from 'flags/react';
+import { encryptFlagValues } from 'flags/next';
+import getFlags from '../app/getFlags';
 
-export default function Index({ posts, globalData }) {
+export default function Index({ posts, globalData, encryptedFlagValues }) {
   return (
     <Layout>
       <SEO title={globalData.name} description={globalData.blogTitle} />
@@ -56,34 +56,21 @@ export default function Index({ posts, globalData }) {
         variant="small"
         className="absolute bottom-0 opacity-20 dark:opacity-10"
       />
+      <script
+        type="application/json"
+        data-flag-values
+        dangerouslySetInnerHTML={{
+          __html: safeJsonStringify(encryptedFlagValues),
+        }}
+      />
     </Layout>
   );
-}
-
-/**
- * A function which respects overrides set by the Toolbar, and returns feature flags.
- */
-async function getFlags(request) {
-  const overridesCookieValue = request.cookies['vercel-flag-overrides'];
-  const overrides = overridesCookieValue
-    ? await decrypt(overridesCookieValue)
-    : null;
-
-  const flags = {
-    banner: overrides?.banner ?? false,
-  };
-
-  return flags;
 }
 
 export const getServerSideProps = async (context) => {
   const posts = getPosts();
   const globalData = getGlobalData();
   const flags = await getFlags(context.req);
-  const encryptedFlagValues = await encrypt(flags);
+  const encryptedFlagValues = await encryptFlagValues(flags);
   return { props: { posts, globalData, flags, encryptedFlagValues } };
 };
-
-<script type="application/json" data-flag-values>
-  ${safeJsonStringify({ exampleFlag: true })}
-</script>;
