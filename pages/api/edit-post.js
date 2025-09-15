@@ -30,7 +30,7 @@ export default async function handler(req, res) {
   // Construct the new MDX content with frontmatter
   const newMdxContent = matter.stringify(content, {
     title,
-    date,
+    date: new Date(date),
     description,
   });
 

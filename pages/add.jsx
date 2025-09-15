@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useLayoutEffect } from 'react';
 import Layout, { GradientBackground } from '../components/Layout';
 import Header from '../components/Header';
 import Footer from '../components/Footer';
@@ -9,11 +9,24 @@ import { useRouter } from 'next/router';
 export default function AddPostPage({ globalData }) {
   const { user, logout } = useUser();
   const router = useRouter();
-  const [title, setTitle] = useState(
-    `Title, ${new Date().toLocaleDateString('de-DE')}`
-  );
   const [date, setDate] = useState(new Date().toISOString().slice(0, 10));
-  const [description, setDescription] = useState('');
+  const [description, setDescription] = useState(
+    new Date().toLocaleDateString('de-DE')
+  );
+  const weekdays = [
+    'Duminică',
+    'Luni',
+    'Marți',
+    'Miercuri',
+    'Joi',
+    'Vineri',
+    'Sâmbătă',
+  ];
+  const [title, setTitle] = useState(
+    `${weekdays[new Date().getDay()]}, ${new Date().toLocaleDateString(
+      'de-DE'
+    )}`
+  );
   const [content, setContent] = useState(`## Informatică: nimic
 
 ## Engleză: nimic
@@ -35,16 +48,21 @@ export default function AddPostPage({ globalData }) {
 ## Muzică: nimic`);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitStatus, setSubmitStatus] = useState(null);
+  const [isClient, setIsClient] = useState(false);
+
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
 
   const textareaRef = useRef(null);
 
-  useEffect(() => {
-    if (textareaRef.current) {
+  useLayoutEffect(() => {
+    if (isClient && textareaRef.current) {
       textareaRef.current.style.height = '0px'; // Reset height to recalculate
       textareaRef.current.style.height =
         textareaRef.current.scrollHeight + 'px';
     }
-  }, [content]);
+  }, [isClient, content]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -96,7 +114,7 @@ export default function AddPostPage({ globalData }) {
                 }
                 className="bg-primary hover:opacity-80 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
               >
-                Re-login with another account
+                login with another account
               </button>
             </div>
           </div>
